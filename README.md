@@ -1,12 +1,64 @@
-# Example Continuous Machine Learning project
+# Example Continuous Machine Learning Project
 
-This repository contains code and data for a simple classification problem. All
-commands below assume you have [uv](https://docs.astral.sh/uv/) installed.
+[![CI](https://github.com/florianbaer/example_cml/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/florianbaer/example_cml/actions/workflows/ci.yml)
 
-- `uv sync --dev` creates a virtual environment with runtime and test dependencies.
-- `uv run python get_data.py` generates the dataset under the `data/` folder.
-- `uv run python train.py` trains the classifier and stores the resulting metrics and plot.
-- `uv run pytest` runs the automated test suite.
-- `uv run ruff check .` performs linting to enforce code style and catch common errors.
-- `uv run radon cc -s .` and `uv run radon mi .` report cyclomatic complexity and maintainability metrics.
-- `uv run pytest --cov=.` can be used when you want to rerun tests with coverage summaries on demand (the default `uv run pytest` already produces coverage reports courtesy of `pyproject.toml`).
+This repository demonstrates a lightweight continuous machine learning (CML)
+setup for a binary classification task. It includes reproducible data
+generation, model training, testing, and automated reporting pipelines.
+
+## Prerequisites
+
+- [uv](https://docs.astral.sh/uv/) for environment management and packaging
+- Python 3.11 (downloaded automatically by uv)
+
+## Quick Start
+
+```bash
+uv sync --dev                # install runtime + dev dependencies
+uv run python get_data.py    # generate synthetic dataset under data/
+uv run python train.py       # train RandomForest, write metrics.txt & plot.png
+uv run pytest                # run test suite with coverage (reports in htmlcov/)
+```
+
+Additional quality checks:
+
+- `uv run ruff check .` — linting (E/F rules, 100 char lines)
+- `uv run radon cc -s .` — cyclomatic complexity report
+- `uv run radon mi .` — maintainability index report
+
+## Continuous Integration
+
+The `CI` workflow (`.github/workflows/ci.yml`) runs on every push and pull
+request:
+
+1. **Preparation** — checkout, install dependencies via uv.
+2. **Linting** — Ruff lint plus Radon complexity/maintainability metrics (uploaded as build artifacts).
+3. **Tests** — Pytest with coverage (XML/HTML output) and summary publishing via `dorny/test-reporter`.
+
+Artifacts include `coverage.xml`, `htmlcov/`, `metrics/`, and the Pytest JUnit
+report for inspection and dashboards.
+
+## Manual Model Training Workflow
+
+Trigger the `Training` workflow (`Actions → Training → Run workflow`) to
+regenerate metrics on demand. When launching the workflow you can choose:
+
+- **Git ref** — branch, tag, or commit to train against (defaults to `main`).
+- **Post comment** — whether a CML summary comment should be added to the selected commit/PR (enabled by default).
+
+1. Generate data and train the model inside GitHub Actions using uv.
+2. Produce a Markdown report (`report.md`) including the accuracy metric and confusion-matrix plot (`plot.png`).
+3. Publish the report as a CML comment and upload the artifacts for download.
+
+## Repository Layout
+
+```text
+get_data.py         # dataset generation helper
+train.py            # training pipeline + metrics/plot writing
+tests/              # pytest suite for data and training routines
+.github/workflows/  # CI and manual training workflows
+.github/actions/    # reusable composite steps for CI
+```
+
+Happy experimenting! Contributions that extend the pipeline or add model
+comparisons are welcome—just make sure the commands above continue to pass.

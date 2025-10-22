@@ -1,0 +1,74 @@
+name: Training
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref (branch, tag, or SHA) to checkout
+        required: false
+        default: main
+      post_comment:
+        description: Post the CML summary comment
+        type: boolean
+        required: false
+        default: true
+
+jobs:
+  train-and-report:
+    name: Train and Report
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v1
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Set up CML
+        uses: iterative/setup-cml@v2
+
+      - name: Train model and publish report
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          POST_COMMENT: ${{ github.event.inputs.post_comment || 'true' }}
+        run: |
+          uv run python get_data.py
+          uv run python train.py
+
+          echo "# Model Training Report" > report.md
+          echo >> report.md
+          cat metrics.txt >> report.md
+          echo >> report.md
+          echo '![Confusion Matrix](./plot.png)' >> report.md
+
+          if [ "$POST_COMMENT" = "true" ]; then
+            cml comment create report.md
+          else
+            echo "Skipping CML comment because post_comment=false."
+          fi
+
+      - name: Upload training artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: training-artifacts
+          path: |
+            metrics.txt
+            plot.png
+            report.md
