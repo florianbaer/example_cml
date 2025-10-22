@@ -1,0 +1,25 @@
+name: Linting
+
+description: Run linting and code metrics checks
+
+inputs:
+  metrics-directory:
+    description: Directory to store metric outputs
+    required: false
+    default: metrics
+
+runs:
+  using: composite
+  steps:
+    - name: Run Ruff lint
+      shell: bash
+      run: uv run ruff check .
+
+    - name: Measure code metrics
+      shell: bash
+      env:
+        METRICS_DIR: ${{ inputs.metrics-directory }}
+      run: |
+        mkdir -p "$METRICS_DIR"
+        uv run radon cc -s . | tee "$METRICS_DIR/radon-cc.txt"
+        uv run radon mi . | tee "$METRICS_DIR/radon-mi.txt"

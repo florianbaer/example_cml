@@ -1,0 +1,46 @@
+name: Tests
+
+description: Run pytest with coverage, publish reports, and upload artifacts
+
+inputs:
+  metrics-directory:
+    description: Directory containing metric outputs
+    required: false
+    default: metrics
+  junit-path:
+    description: Destination path for the pytest junit XML report
+    required: false
+    default: pytest-report.xml
+  artifact-name:
+    description: Name to use for the uploaded artifact bundle
+    required: false
+    default: analysis-reports
+
+runs:
+  using: composite
+  steps:
+    - name: Run tests with coverage
+      shell: bash
+      env:
+        JUNIT_PATH: ${{ inputs.junit-path }}
+      run: uv run pytest --junitxml="$JUNIT_PATH"
+
+    - name: Upload analysis artifacts
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: |
+          ${{ inputs.metrics-directory }}/
+          coverage.xml
+          htmlcov/
+          ${{ inputs.junit-path }}
+
+    - name: Publish test report
+      if: ${{ always() }}
+      uses: dorny/test-reporter@v1
+      with:
+        name: Pytest Results
+        artifact: ${{ inputs.artifact-name }}
+        path: ${{ inputs.junit-path }}
+        reporter: java-junit
