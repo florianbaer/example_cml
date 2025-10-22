@@ -19,6 +19,10 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Run training script
+      shell: bash
+      run: uv run python train.py
+
     - name: Run tests with coverage
       shell: bash
       env:
@@ -34,6 +38,8 @@ runs:
           ${{ inputs.metrics-directory }}/
           coverage.xml
           htmlcov/
+          metrics.txt
+          plot.png
           ${{ inputs.junit-path }}
 
     - name: Publish test report
