@@ -41,7 +41,10 @@ report for inspection and dashboards.
 ## Manual Model Training Workflow
 
 Trigger the `Training` workflow (`Actions → Training → Run workflow`) to
-regenerate metrics on demand:
+regenerate metrics on demand. When launching the workflow you can choose:
+
+- **Git ref** — branch, tag, or commit to train against (defaults to `main`).
+- **Post comment** — whether a CML summary comment should be added to the selected commit/PR (enabled by default).
 
 1. Generate data and train the model inside GitHub Actions using uv.
 2. Produce a Markdown report (`report.md`) including the accuracy metric and confusion-matrix plot (`plot.png`).

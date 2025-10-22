@@ -5,6 +5,16 @@ on:
     tags:
       - '*'
   workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref (branch, tag, or SHA) to checkout
+        required: false
+        default: main
+      post_comment:
+        description: Post the CML summary comment
+        type: boolean
+        required: false
+        default: true
 
 jobs:
   train-and-report:
@@ -17,6 +27,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -35,6 +47,7 @@ jobs:
       - name: Train model and publish report
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          POST_COMMENT: ${{ github.event.inputs.post_comment || 'true' }}
         run: |
           uv run python get_data.py
           uv run python train.py
@@ -45,7 +58,11 @@ jobs:
           echo >> report.md
           echo '![Confusion Matrix](./plot.png)' >> report.md
 
-          cml comment create report.md
+          if [ "$POST_COMMENT" = "true" ]; then
+            cml comment create report.md
+          else
+            echo "Skipping CML comment because post_comment=false."
+          fi
 
       - name: Upload training artifacts
         uses: actions/upload-artifact@v4
