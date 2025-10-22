@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v1
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      - name: Run lint
+        run: uv run ruff check .
+
+      - name: Measure code metrics
+        run: |
+          mkdir -p metrics
+          uv run radon cc -s . | tee metrics/radon-cc.txt
+          uv run radon mi . | tee metrics/radon-mi.txt
+
+      - name: Run tests with coverage
+        run: uv run pytest --junitxml=pytest-report.xml
+
+      - name: Upload analysis artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: analysis-reports
+          path: |
+            metrics/
+            coverage.xml
+            htmlcov/
+            pytest-report.xml
+
+      - name: Publish test report
+        if: ${{ always() }}
+        uses: dorny/test-reporter@v1
+        with:
+          name: Pytest Results
+          artifact: analysis-reports
+          path: pytest-report.xml
+          reporter: pytest-junit
