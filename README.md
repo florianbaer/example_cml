@@ -33,10 +33,10 @@ request:
 
 1. **Preparation** — checkout, install dependencies via uv.
 2. **Linting** — Ruff lint plus Radon complexity/maintainability metrics (uploaded as build artifacts).
-3. **Tests** — Pytest with coverage (XML/HTML output) and summary publishing via `dorny/test-reporter`.
+3. **Tests** — Execute the standalone training script to verify end-to-end behavior, then run Pytest with coverage (XML/HTML output) and publish a summary via `dorny/test-reporter`.
 
 Artifacts include `coverage.xml`, `htmlcov/`, `metrics/`, and the Pytest JUnit
-report for inspection and dashboards.
+report for inspection and dashboards, alongside the training outputs (`metrics.txt`, `plot.png`).
 
 ## Manual Model Training Workflow
 
