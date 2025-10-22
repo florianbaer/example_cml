@@ -53,5 +53,5 @@ def train_model(
 
 
 if __name__ == "__main__":
-    results = train_model()
+    results = train_model(max_depth=3)
     print(results["accuracy"])
