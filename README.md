@@ -10,3 +10,7 @@ commands below assume you have [uv](https://docs.astral.sh/uv/) installed.
 - `uv run ruff check .` performs linting to enforce code style and catch common errors.
 - `uv run radon cc -s .` and `uv run radon mi .` report cyclomatic complexity and maintainability metrics.
 - `uv run pytest --cov=.` can be used when you want to rerun tests with coverage summaries on demand (the default `uv run pytest` already produces coverage reports courtesy of `pyproject.toml`).
+
+To generate a model performance report from GitHub Actions, launch the manual
+`Training` workflow (`Actions > Training > Run workflow`). It trains the model,
+collects metrics, and posts a CML report containing the confusion matrix plot.
